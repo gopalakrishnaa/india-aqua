@@ -33,6 +33,7 @@ def test_deficiency(api_client):
 
 def test_unauthorized():
     from fastapi.testclient import TestClient
+
     from ganga_aqua.api.app import create_app
 
     client = TestClient(create_app())

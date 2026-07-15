@@ -1,8 +1,8 @@
 """LLM validator unit tests (mocked)."""
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
-from ganga_aqua.agents.validator import LLMValidator, ValidationResult
+from ganga_aqua.agents.validator import LLMValidator
 
 
 def test_validation_accepts_match():
