@@ -47,15 +47,15 @@ export default function StationPage() {
   return (
     <div className="mx-auto max-w-4xl w-full px-4 py-8 space-y-6 flex-1">
       <div>
-        <Link href="/" className="text-sm text-cyan-400 hover:underline">
+        <Link href="/" className="text-sm text-cyan-700 hover:underline">
           ← Back to map
         </Link>
-        <h1 className="text-xl font-semibold text-slate-100 mt-2">{stationName}</h1>
+        <h1 className="text-xl font-semibold text-slate-900 mt-2">{stationName}</h1>
         <p className="text-sm text-slate-500">Last 30 days</p>
       </div>
 
       {isLoading && <p className="text-slate-500 text-sm">Loading…</p>}
-      {error && <p className="text-red-400 text-sm">Failed to load history.</p>}
+      {error && <p className="text-red-600 text-sm">Failed to load history.</p>}
       {!isLoading && !error && chartData.length === 0 && (
         <p className="text-slate-500 text-sm">No readings recorded for this station yet.</p>
       )}
@@ -63,17 +63,17 @@ export default function StationPage() {
       {chartData.length > 0 && (
         <div className="grid gap-6 sm:grid-cols-2">
           {METRICS.map((metric) => (
-            <div key={metric.key} className="rounded-lg border border-slate-800 p-4">
-              <h3 className="text-sm font-medium text-slate-300 mb-2">
+            <div key={metric.key} className="rounded-lg border border-cyan-200 bg-white p-4">
+              <h3 className="text-sm font-medium text-slate-700 mb-2">
                 {metric.label} {metric.unit && <span className="text-slate-500">({metric.unit})</span>}
               </h3>
               <ResponsiveContainer width="100%" height={200}>
                 <LineChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e0f2fe" />
                   <XAxis dataKey="recorded_at" stroke="#64748b" fontSize={11} />
                   <YAxis stroke="#64748b" fontSize={11} domain={["auto", "auto"]} />
                   <Tooltip
-                    contentStyle={{ background: "#0f172a", border: "1px solid #1e293b", fontSize: 12 }}
+                    contentStyle={{ background: "#fff", border: "1px solid #a5f3fc", fontSize: 12 }}
                   />
                   <Line
                     type="monotone"
