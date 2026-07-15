@@ -1,7 +1,7 @@
 "use client";
 
 import useSWR from "swr";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { StationMap } from "@/components/StationMap";
 import { api } from "@/lib/api";
 import { readingIssues, severityOf, SEVERITY_META, STANDARD_RANGES } from "@/lib/status";
@@ -9,7 +9,10 @@ import type { Severity } from "@/lib/status";
 import type { Reading } from "@/lib/types";
 
 export default function HomePage() {
+  const [river, setRiver] = useState<string>("");
+
   const stationsQuery = useSWR("stations", () => api.stations());
+  const riversQuery = useSWR("rivers", () => api.rivers());
   const readingsQuery = useSWR("latest-readings", () => api.latestReadings(), {
     refreshInterval: 60_000,
   });
@@ -22,14 +25,19 @@ export default function HomePage() {
     return map;
   }, [readingsQuery.data]);
 
+  const stations = useMemo(
+    () => (stationsQuery.data ?? []).filter((s) => !river || s.river === river),
+    [stationsQuery.data, river],
+  );
+
   const counts = useMemo(() => {
     const c: Record<Severity, number> = { good: 0, warning: 0, critical: 0 };
-    for (const station of stationsQuery.data ?? []) {
+    for (const station of stations) {
       const entry = readingsByStation.get(station.id);
       c[severityOf(entry?.issueCount ?? 0)] += 1;
     }
     return c;
-  }, [stationsQuery.data, readingsByStation]);
+  }, [stations, readingsByStation]);
 
   if (stationsQuery.isLoading) {
     return (
@@ -52,7 +60,7 @@ export default function HomePage() {
     );
   }
 
-  const total = stationsQuery.data?.length ?? 0;
+  const total = stations.length;
 
   return (
     <div className="flex-1 flex flex-col relative">
@@ -62,6 +70,23 @@ export default function HomePage() {
           <h2 className="text-sm font-semibold text-slate-900">Stations</h2>
           <span className="text-xs text-slate-400">{total} total</span>
         </div>
+
+        <label className="mt-3 block">
+          <span className="sr-only">Filter by river</span>
+          <select
+            value={river}
+            onChange={(e) => setRiver(e.target.value)}
+            className="w-full rounded-lg border border-cyan-200 bg-white px-2.5 py-1.5 text-sm text-slate-700 focus:border-cyan-400 focus:outline-none focus:ring-2 focus:ring-cyan-100"
+          >
+            <option value="">All rivers</option>
+            {(riversQuery.data ?? []).map((r) => (
+              <option key={r} value={r}>
+                {r}
+              </option>
+            ))}
+          </select>
+        </label>
+
         <div className="mt-3 space-y-2">
           {(["good", "warning", "critical"] as Severity[]).map((sev) => {
             const meta = SEVERITY_META[sev];
@@ -91,7 +116,7 @@ export default function HomePage() {
         </dl>
       </div>
 
-      <StationMap stations={stationsQuery.data ?? []} readingsByStation={readingsByStation} />
+      <StationMap stations={stations} readingsByStation={readingsByStation} />
     </div>
   );
 }

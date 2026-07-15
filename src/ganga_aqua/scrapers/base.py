@@ -15,6 +15,7 @@ class ScrapedReading:
     source_url: str
     raw_text: str
     recorded_at: datetime
+    river: str = "Ganga"
     metrics: dict[str, Any] = field(default_factory=dict)
     cpcb_code: str | None = None
     latitude: float | None = None

@@ -18,6 +18,8 @@ export type Reading = {
   cod_mg_l: number | null;
   turbidity_ntu: number | null;
   temperature_c: number | null;
+  wqi: number | null;
+  quality_class: string | null;
   recorded_at: string;
   source_url: string;
 };

@@ -54,6 +54,8 @@ class WaterQualityReading(Base):
     cod_mg_l: Mapped[float | None] = mapped_column(Float)
     turbidity_ntu: Mapped[float | None] = mapped_column(Float)
     temperature_c: Mapped[float | None] = mapped_column(Float)
+    wqi: Mapped[float | None] = mapped_column(Float)
+    quality_class: Mapped[str | None] = mapped_column(String(20))
     recorded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     source_url: Mapped[str] = mapped_column(String(500), nullable=False)
     raw_text: Mapped[str | None] = mapped_column(Text)

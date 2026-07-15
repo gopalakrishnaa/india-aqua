@@ -28,8 +28,21 @@ METRIC_LABELS = {
 }
 
 
-def list_stations(db: Session) -> list[MonitoringStation]:
-    return db.query(MonitoringStation).order_by(MonitoringStation.name).all()
+def list_stations(db: Session, river: str | None = None) -> list[MonitoringStation]:
+    q = db.query(MonitoringStation)
+    if river:
+        q = q.filter(MonitoringStation.river == river)
+    return q.order_by(MonitoringStation.name).all()
+
+
+def list_rivers(db: Session) -> list[str]:
+    rows = (
+        db.query(MonitoringStation.river)
+        .distinct()
+        .order_by(MonitoringStation.river)
+        .all()
+    )
+    return [r[0] for r in rows if r[0]]
 
 
 def get_latest_readings(db: Session, station_id: int | None = None) -> list[WaterQualityReading]:
