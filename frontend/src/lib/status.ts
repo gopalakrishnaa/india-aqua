@@ -1,5 +1,7 @@
 import type { Reading } from "./types";
 
+export type Severity = "good" | "warning" | "critical";
+
 // CPCB-style bathing water thresholds (simplified).
 export const STANDARD_RANGES = [
   { label: "pH", range: "6.5 – 8.5" },
@@ -25,8 +27,39 @@ export function readingIssues(reading: Reading): string[] {
   return issues;
 }
 
+export function severityOf(issueCount: number): Severity {
+  if (issueCount === 0) return "good";
+  if (issueCount === 1) return "warning";
+  return "critical";
+}
+
+export const SEVERITY_META: Record<
+  Severity,
+  { label: string; hex: string; dot: string; text: string; pill: string }
+> = {
+  good: {
+    label: "Healthy",
+    hex: "#10b981",
+    dot: "bg-emerald-500",
+    text: "text-emerald-700",
+    pill: "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200",
+  },
+  warning: {
+    label: "Warning",
+    hex: "#f59e0b",
+    dot: "bg-amber-500",
+    text: "text-amber-700",
+    pill: "bg-amber-50 text-amber-700 ring-1 ring-amber-200",
+  },
+  critical: {
+    label: "Critical",
+    hex: "#ef4444",
+    dot: "bg-red-500",
+    text: "text-red-700",
+    pill: "bg-red-50 text-red-700 ring-1 ring-red-200",
+  },
+};
+
 export function statusColor(issueCount: number): string {
-  if (issueCount === 0) return "#22c55e"; // green
-  if (issueCount <= 1) return "#eab308"; // amber
-  return "#ef4444"; // red
+  return SEVERITY_META[severityOf(issueCount)].hex;
 }

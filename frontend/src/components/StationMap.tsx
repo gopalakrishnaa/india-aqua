@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import Map, { Marker, Popup } from "react-map-gl/maplibre";
 import Link from "next/link";
 import "maplibre-gl/dist/maplibre-gl.css";
-import { statusColor } from "@/lib/status";
+import { SEVERITY_META, severityOf } from "@/lib/status";
 import type { Reading, Station } from "@/lib/types";
 
 // Free, keyless vector basemap — CARTO's CDN-backed style, built for
@@ -40,23 +40,29 @@ export function StationMap({
       style={{ flex: 1 }}
       mapStyle={BASEMAP_STYLE}
     >
-      {points.map((s) => (
-        <Marker
-          key={s.id}
-          longitude={s.longitude!}
-          latitude={s.latitude!}
-          onClick={(e) => {
-            e.originalEvent.stopPropagation();
-            setSelected(s);
-          }}
-        >
-          <button
-            aria-label={s.name}
-            className="h-3.5 w-3.5 rounded-full border-2 border-slate-950 cursor-pointer"
-            style={{ backgroundColor: statusColor(s.issueCount) }}
-          />
-        </Marker>
-      ))}
+      {points.map((s) => {
+        const sev = severityOf(s.issueCount);
+        const meta = SEVERITY_META[sev];
+        return (
+          <Marker
+            key={s.id}
+            longitude={s.longitude!}
+            latitude={s.latitude!}
+            onClick={(e) => {
+              e.originalEvent.stopPropagation();
+              setSelected(s);
+            }}
+          >
+            <button
+              aria-label={`${s.name} — ${meta.label}`}
+              className={`relative block h-4 w-4 rounded-full border-2 border-white cursor-pointer aqua-marker ${
+                sev === "critical" ? "aqua-pulse" : ""
+              }`}
+              style={{ backgroundColor: meta.hex, color: meta.hex }}
+            />
+          </Marker>
+        );
+      })}
 
       {selected && selected.latitude !== null && selected.longitude !== null && (
         <Popup
@@ -66,33 +72,82 @@ export function StationMap({
           closeButton={false}
           closeOnClick={false}
           anchor="bottom"
+          offset={14}
+          maxWidth="260px"
         >
-          <div className="text-slate-900 text-sm space-y-1 min-w-40 pr-1">
-            <div className="flex items-start justify-between gap-2">
-              <p className="font-medium">{selected.name}</p>
-              <button
-                type="button"
-                aria-label="Close"
-                onClick={() => setSelected(null)}
-                className="text-slate-400 hover:text-slate-700 leading-none text-base -mt-0.5"
-              >
-                ×
-              </button>
-            </div>
-            <p className="text-slate-600">{selected.river} · {selected.location}</p>
-            {selected.latest ? (
-              <p className="text-xs text-slate-500">
-                pH {selected.latest.ph ?? "—"} · DO {selected.latest.dissolved_oxygen_mg_l ?? "—"} mg/L
-              </p>
-            ) : (
-              <p className="text-xs text-slate-500">No recent readings</p>
-            )}
-            <Link href={`/stations/${selected.id}`} className="text-cyan-600 hover:underline text-xs">
-              View history →
-            </Link>
-          </div>
+          <StationPopup station={selected} onClose={() => setSelected(null)} />
         </Popup>
       )}
     </Map>
+  );
+}
+
+function StationPopup({
+  station,
+  onClose,
+}: {
+  station: StationWithIssues;
+  onClose: () => void;
+}) {
+  const meta = SEVERITY_META[severityOf(station.issueCount)];
+  const latest = station.latest;
+
+  return (
+    <div className="w-56">
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0">
+          <p className="font-semibold text-slate-900 leading-tight truncate">{station.name}</p>
+          <p className="text-xs text-slate-500 mt-0.5 truncate">
+            {station.river} · {station.location}
+          </p>
+        </div>
+        <button
+          type="button"
+          aria-label="Close"
+          onClick={onClose}
+          className="shrink-0 grid h-5 w-5 place-items-center rounded-md text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+        >
+          ✕
+        </button>
+      </div>
+
+      <span
+        className={`mt-2 inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-medium ${meta.pill}`}
+      >
+        <span className={`h-1.5 w-1.5 rounded-full ${meta.dot}`} />
+        {meta.label}
+        {station.issueCount > 0 && ` · ${station.issueCount} issue${station.issueCount > 1 ? "s" : ""}`}
+      </span>
+
+      {latest ? (
+        <dl className="mt-2.5 grid grid-cols-2 gap-x-3 gap-y-1.5 text-xs">
+          <div>
+            <dt className="text-slate-400">pH</dt>
+            <dd className="font-medium text-slate-800">{latest.ph ?? "—"}</dd>
+          </div>
+          <div>
+            <dt className="text-slate-400">DO (mg/L)</dt>
+            <dd className="font-medium text-slate-800">{latest.dissolved_oxygen_mg_l ?? "—"}</dd>
+          </div>
+          <div>
+            <dt className="text-slate-400">BOD (mg/L)</dt>
+            <dd className="font-medium text-slate-800">{latest.bod_mg_l ?? "—"}</dd>
+          </div>
+          <div>
+            <dt className="text-slate-400">Turbidity</dt>
+            <dd className="font-medium text-slate-800">{latest.turbidity_ntu ?? "—"}</dd>
+          </div>
+        </dl>
+      ) : (
+        <p className="mt-2.5 text-xs text-slate-500">No recent readings</p>
+      )}
+
+      <Link
+        href={`/stations/${station.id}`}
+        className="mt-3 flex items-center justify-center gap-1 rounded-lg bg-cyan-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-cyan-700"
+      >
+        View history →
+      </Link>
+    </div>
   );
 }
