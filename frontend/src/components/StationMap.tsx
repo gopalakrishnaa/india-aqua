@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Map, { Marker, Popup } from "react-map-gl/maplibre";
+import Map, { Layer, Marker, Popup, Source } from "react-map-gl/maplibre";
 import Link from "next/link";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { SEVERITY_META, severityOf } from "@/lib/status";
@@ -11,6 +11,13 @@ import type { Reading, Station } from "@/lib/types";
 // unlimited public use (unlike raw OSM tiles, which rate-limit automated
 // traffic per their usage policy).
 const BASEMAP_STYLE = "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json";
+
+// India's boundary per the Survey of India (includes Jammu & Kashmir,
+// Ladakh, Aksai Chin, and Pakistan-occupied Kashmir), overlaid because the
+// base map's own borders follow the internationally-neutral treatment most
+// global providers use for this disputed region.
+// Source: DataMeet (github.com/datameet/maps), simplified for web display.
+const INDIA_BOUNDARY_URL = "/geo/india-boundary.geojson";
 
 type StationWithIssues = Station & { issueCount: number; latest: Reading | null };
 
@@ -40,6 +47,19 @@ export function StationMap({
       style={{ flex: 1 }}
       mapStyle={BASEMAP_STYLE}
     >
+      <Source id="india-boundary" type="geojson" data={INDIA_BOUNDARY_URL}>
+        <Layer
+          id="india-boundary-fill"
+          type="fill"
+          paint={{ "fill-color": "#0ea5e9", "fill-opacity": 0.04 }}
+        />
+        <Layer
+          id="india-boundary-line"
+          type="line"
+          paint={{ "line-color": "#0e7490", "line-width": 2 }}
+        />
+      </Source>
+
       {points.map((s) => {
         const sev = severityOf(s.issueCount);
         const meta = SEVERITY_META[sev];
