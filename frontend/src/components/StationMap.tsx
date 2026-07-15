@@ -63,11 +63,22 @@ export function StationMap({
           longitude={selected.longitude}
           latitude={selected.latitude}
           onClose={() => setSelected(null)}
+          closeButton={false}
           closeOnClick={false}
           anchor="bottom"
         >
-          <div className="text-slate-900 text-sm space-y-1 min-w-40">
-            <p className="font-medium">{selected.name}</p>
+          <div className="text-slate-900 text-sm space-y-1 min-w-40 pr-1">
+            <div className="flex items-start justify-between gap-2">
+              <p className="font-medium">{selected.name}</p>
+              <button
+                type="button"
+                aria-label="Close"
+                onClick={() => setSelected(null)}
+                className="text-slate-400 hover:text-slate-700 leading-none text-base -mt-0.5"
+              >
+                ×
+              </button>
+            </div>
             <p className="text-slate-600">{selected.river} · {selected.location}</p>
             {selected.latest ? (
               <p className="text-xs text-slate-500">

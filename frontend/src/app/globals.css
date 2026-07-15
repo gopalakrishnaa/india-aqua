@@ -4,3 +4,10 @@
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
+
+/* Keep map popups above the legend/reference panels, which are
+   positioned outside the map and would otherwise outrank the
+   popup's own (lower) stacking context. */
+.maplibregl-popup {
+  z-index: 20;
+}
