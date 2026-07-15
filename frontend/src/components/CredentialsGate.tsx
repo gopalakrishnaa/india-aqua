@@ -21,7 +21,7 @@ export function CredentialsGate({ children }: { children: ReactNode }) {
           </p>
           <Link
             href="/settings"
-            className="inline-block rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-500"
+            className="inline-block rounded-md bg-cyan-600 px-4 py-2 text-sm font-medium text-white hover:bg-cyan-500"
           >
             Go to Settings
           </Link>

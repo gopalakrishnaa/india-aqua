@@ -84,7 +84,7 @@ export function StationMap({
             ) : (
               <p className="text-xs text-slate-500">No recent readings</p>
             )}
-            <Link href={`/stations/${selected.id}`} className="text-emerald-600 hover:underline text-xs">
+            <Link href={`/stations/${selected.id}`} className="text-cyan-600 hover:underline text-xs">
               View history →
             </Link>
           </div>

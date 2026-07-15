@@ -35,7 +35,7 @@ function DeficiencyTable() {
           {data.map((d) => (
             <tr key={d.station_id} className="hover:bg-slate-900/60">
               <td className="px-4 py-2">
-                <Link href={`/stations/${d.station_id}`} className="text-emerald-400 hover:underline">
+                <Link href={`/stations/${d.station_id}`} className="text-cyan-400 hover:underline">
                   {d.station_name}
                 </Link>
               </td>

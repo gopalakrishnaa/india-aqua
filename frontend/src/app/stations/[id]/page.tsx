@@ -48,7 +48,7 @@ function StationDetail({ stationId }: { stationId: number }) {
   return (
     <div className="mx-auto max-w-4xl w-full px-4 py-8 space-y-6 flex-1">
       <div>
-        <Link href="/" className="text-sm text-emerald-400 hover:underline">
+        <Link href="/" className="text-sm text-cyan-400 hover:underline">
           ← Back to map
         </Link>
         <h1 className="text-xl font-semibold text-slate-100 mt-2">{stationName}</h1>
