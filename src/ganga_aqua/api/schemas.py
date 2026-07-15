@@ -31,6 +31,8 @@ class ReadingOut(BaseModel):
     cod_mg_l: float | None
     turbidity_ntu: float | None
     temperature_c: float | None
+    wqi: float | None = None
+    quality_class: str | None = None
     recorded_at: datetime
     source_url: str
 
@@ -47,6 +49,7 @@ class ScrapeResultOut(BaseModel):
     scraped: int
     stored: int
     rejected: int
+    duplicate: int = 0
 
 
 class HealthOut(BaseModel):

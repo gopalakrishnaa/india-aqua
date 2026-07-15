@@ -9,7 +9,13 @@ from ganga_aqua.api.deps import get_current_client
 from ganga_aqua.api.schemas import DeficiencyOut, ReadingOut, ScrapeResultOut, StationOut
 from ganga_aqua.db.models import SaasClient
 from ganga_aqua.db.session import get_db
-from ganga_aqua.services.readings import get_deficiency_report, get_latest_readings, get_readings_history, list_stations
+from ganga_aqua.services.readings import (
+    get_deficiency_report,
+    get_latest_readings,
+    get_readings_history,
+    list_rivers,
+    list_stations,
+)
 from ganga_aqua.services.scrape_pipeline import run_scrape_pipeline
 
 router = APIRouter(prefix="/api/v1", tags=["water-quality"])
@@ -26,6 +32,8 @@ def _reading_to_out(reading) -> ReadingOut:
         cod_mg_l=reading.cod_mg_l,
         turbidity_ntu=reading.turbidity_ntu,
         temperature_c=reading.temperature_c,
+        wqi=reading.wqi,
+        quality_class=reading.quality_class,
         recorded_at=reading.recorded_at,
         source_url=reading.source_url,
     )
@@ -33,10 +41,19 @@ def _reading_to_out(reading) -> ReadingOut:
 
 @router.get("/stations", response_model=list[StationOut])
 def api_list_stations(
+    river: str | None = Query(default=None, description="Filter by river name"),
     db: Session = Depends(get_db),
     _client: SaasClient = Depends(get_current_client),
 ):
-    return list_stations(db)
+    return list_stations(db, river)
+
+
+@router.get("/rivers", response_model=list[str])
+def api_list_rivers(
+    db: Session = Depends(get_db),
+    _client: SaasClient = Depends(get_current_client),
+):
+    return list_rivers(db)
 
 
 @router.get("/readings/latest", response_model=list[ReadingOut])

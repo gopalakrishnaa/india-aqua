@@ -119,6 +119,16 @@ function StationPopup({
         {station.issueCount > 0 && ` · ${station.issueCount} issue${station.issueCount > 1 ? "s" : ""}`}
       </span>
 
+      {latest?.wqi != null && (
+        <div className="mt-2.5 flex items-baseline gap-2 rounded-lg bg-cyan-50 px-2.5 py-1.5">
+          <span className="text-xs text-slate-500">WQI</span>
+          <span className="text-base font-semibold text-slate-900 tabular-nums">{latest.wqi}</span>
+          {latest.quality_class && (
+            <span className="ml-auto text-xs font-medium text-cyan-700">{latest.quality_class}</span>
+          )}
+        </div>
+      )}
+
       {latest ? (
         <dl className="mt-2.5 grid grid-cols-2 gap-x-3 gap-y-1.5 text-xs">
           <div>

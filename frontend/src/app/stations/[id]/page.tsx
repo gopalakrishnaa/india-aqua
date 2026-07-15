@@ -95,6 +95,23 @@ export default function StationPage() {
         </div>
       )}
 
+      {latest?.wqi != null && (
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-2 rounded-2xl border border-cyan-100 bg-gradient-to-br from-cyan-50 to-white p-5 shadow-sm shadow-cyan-900/5">
+          <div>
+            <p className="text-xs uppercase tracking-wide text-slate-400">Water Quality Index</p>
+            <p className="mt-1 flex items-baseline gap-2">
+              <span className="text-4xl font-semibold text-slate-900 tabular-nums">{latest.wqi}</span>
+              <span className="text-sm text-slate-400">/ 100</span>
+            </p>
+          </div>
+          {latest.quality_class && (
+            <span className="rounded-full bg-white px-3 py-1 text-sm font-medium text-cyan-700 ring-1 ring-cyan-200">
+              {latest.quality_class}
+            </span>
+          )}
+        </div>
+      )}
+
       {latest && (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
           {[

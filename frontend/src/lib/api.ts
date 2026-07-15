@@ -19,7 +19,10 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export const api = {
-  stations: () => request<Station[]>("/stations"),
+  stations: (river?: string) =>
+    request<Station[]>(`/stations${river ? `?river=${encodeURIComponent(river)}` : ""}`),
+
+  rivers: () => request<string[]>("/rivers"),
 
   latestReadings: (stationId?: number) =>
     request<Reading[]>(`/readings/latest${stationId ? `?station_id=${stationId}` : ""}`),

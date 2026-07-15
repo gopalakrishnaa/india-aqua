@@ -3,11 +3,12 @@
 from __future__ import annotations
 
 import logging
-from datetime import UTC, datetime, timedelta
 import random
+from datetime import UTC, datetime, timedelta
 
 from sqlalchemy.orm import Session
 
+from ganga_aqua.agents.analyzer import classify_wqi, compute_wqi
 from ganga_aqua.config import get_settings
 from ganga_aqua.db.models import MonitoringStation, SaasClient, SaasTier, WaterQualityReading
 from ganga_aqua.scrapers.ganga_sources import DEMO_STATIONS
@@ -28,6 +29,7 @@ def seed_stations_and_readings(db: Session) -> tuple[int, int]:
         if not station:
             station = MonitoringStation(
                 name=station_data["name"],
+                river=station_data.get("river", "Ganga"),
                 location=station_data["location"],
                 cpcb_code=station_data["cpcb_code"],
                 latitude=station_data["latitude"],
@@ -43,19 +45,30 @@ def seed_stations_and_readings(db: Session) -> tuple[int, int]:
 
         for day_offset in range(SEED_HISTORY_DAYS):
             recorded_at = now - timedelta(days=day_offset, hours=random.randint(0, 12))
+            metrics = {
+                "ph": round(random.uniform(6.8, 8.5), 2),
+                "dissolved_oxygen_mg_l": round(random.uniform(2.0, 9.5), 2),
+                "bod_mg_l": round(random.uniform(1.5, 12.0), 2),
+                "cod_mg_l": round(random.uniform(5.0, 40.0), 2),
+                "turbidity_ntu": round(random.uniform(10.0, 120.0), 2),
+                "temperature_c": round(random.uniform(18.0, 32.0), 2),
+            }
+            wqi = compute_wqi(metrics)
             raw_text = (
                 f"Station: {station_data['name']}\n"
-                f"pH: {round(random.uniform(6.8, 8.5), 2)}\n"
-                f"DO: {round(random.uniform(2.0, 9.5), 2)} mg/L\n"
+                f"pH: {metrics['ph']}\n"
+                f"DO: {metrics['dissolved_oxygen_mg_l']} mg/L\n"
             )
             reading = WaterQualityReading(
                 station_id=station.id,
-                ph=round(random.uniform(6.8, 8.5), 2),
-                dissolved_oxygen_mg_l=round(random.uniform(2.0, 9.5), 2),
-                bod_mg_l=round(random.uniform(1.5, 12.0), 2),
-                cod_mg_l=round(random.uniform(5.0, 40.0), 2),
-                turbidity_ntu=round(random.uniform(10.0, 120.0), 2),
-                temperature_c=round(random.uniform(18.0, 32.0), 2),
+                ph=metrics["ph"],
+                dissolved_oxygen_mg_l=metrics["dissolved_oxygen_mg_l"],
+                bod_mg_l=metrics["bod_mg_l"],
+                cod_mg_l=metrics["cod_mg_l"],
+                turbidity_ntu=metrics["turbidity_ntu"],
+                temperature_c=metrics["temperature_c"],
+                wqi=wqi,
+                quality_class=classify_wqi(wqi) if wqi is not None else None,
                 recorded_at=recorded_at,
                 source_url=station_data["source_url"],
                 raw_text=raw_text,
