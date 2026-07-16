@@ -1,0 +1,29 @@
+databases:
+  - name: ganga-aqua-db
+    databaseName: ganga_aqua
+    user: ganga_aqua
+    plan: free
+
+services:
+  - type: web
+    name: ganga-aqua-api
+    runtime: docker
+    dockerfilePath: ./docker/Dockerfile.api
+    dockerContext: .
+    plan: free
+    healthCheckPath: /health
+    dockerCommand: >-
+      sh -c "uv run alembic upgrade head &&
+             uv run ganga-aqua seed &&
+             uv run ganga-aqua runserver --host 0.0.0.0 --port $PORT"
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: ganga-aqua-db
+          property: connectionString
+      - key: API_KEY_SECRET
+        generateValue: true
+      - key: CORS_ORIGINS
+        value: https://frontend-pi-sable-41.vercel.app
+      - key: NVIDIA_API_KEY
+        sync: false

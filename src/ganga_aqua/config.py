@@ -2,6 +2,7 @@
 
 from functools import lru_cache
 
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -14,6 +15,16 @@ class Settings(BaseSettings):
 
     database_url: str = "postgresql+psycopg://postgres:postgres@localhost:5432/ganga_aqua"
     database_migration_url: str | None = None
+
+    @field_validator("database_url", "database_migration_url")
+    @classmethod
+    def _use_psycopg_driver(cls, v: str | None) -> str | None:
+        # Managed hosts (Render, Heroku-style) hand out bare postgres:// / postgresql:// URLs.
+        if v and v.startswith("postgres://"):
+            return "postgresql+psycopg://" + v[len("postgres://") :]
+        if v and v.startswith("postgresql://"):
+            return "postgresql+psycopg://" + v[len("postgresql://") :]
+        return v
 
     llm_provider: str = "nvidia"
     nvidia_api_key: str = ""
