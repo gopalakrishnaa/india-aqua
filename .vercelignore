@@ -1,0 +1,24 @@
+# Backend serverless bundle — keep it lean (api/, src/, requirements.txt).
+.venv
+.git
+.github
+.pytest_cache
+.ruff_cache
+.code-review-graph
+graphify-out
+frontend
+dashboard
+superset
+docker
+docker-compose.yml
+tests
+alembic
+alembic.ini
+sql
+uv.lock
+pyproject.toml
+render.yaml
+ganga_aqua.db
+*.db
+!api/seed.db
+README.md

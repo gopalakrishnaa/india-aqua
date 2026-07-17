@@ -90,3 +90,7 @@ docker-compose.override.yml
 # ── OS ─────────────────────────────────────────────────────
 Thumbs.db
 .DS_Store
+.vercel
+
+# Local Netlify folder
+.netlify
