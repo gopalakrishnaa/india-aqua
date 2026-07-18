@@ -55,6 +55,13 @@ export default function HomePage() {
         <div className="max-w-sm rounded-2xl border border-red-100 bg-red-50/70 p-6 text-center">
           <p className="font-medium text-red-800">Couldn&apos;t load stations</p>
           <p className="mt-1 text-sm text-red-600">Check that the backend API is running.</p>
+          <button
+            type="button"
+            onClick={() => stationsQuery.mutate()}
+            className="mt-4 inline-flex h-9 items-center rounded-lg bg-red-600 px-4 text-sm font-medium text-white hover:bg-red-700"
+          >
+            Retry
+          </button>
         </div>
       </div>
     );
@@ -63,9 +70,9 @@ export default function HomePage() {
   const total = stations.length;
 
   return (
-    <div className="flex-1 flex flex-col relative">
+    <div className="flex-1 flex flex-col md:relative">
       {/* Station status summary */}
-      <div className="absolute top-4 left-4 z-10 w-56 rounded-2xl border border-cyan-100 bg-white/90 backdrop-blur-sm p-4 shadow-lg shadow-cyan-900/5">
+      <div className="mx-4 mt-4 md:absolute md:top-4 md:left-4 md:z-10 md:mx-0 md:mt-0 md:w-56 rounded-2xl border border-cyan-100 bg-white/90 backdrop-blur-sm p-4 shadow-lg shadow-cyan-900/5">
         <div className="flex items-baseline justify-between">
           <h2 className="text-sm font-semibold text-slate-900">Stations</h2>
           <span className="text-xs text-slate-400">{total} total</span>
@@ -76,7 +83,7 @@ export default function HomePage() {
           <select
             value={river}
             onChange={(e) => setRiver(e.target.value)}
-            className="w-full rounded-lg border border-cyan-200 bg-white px-2.5 py-1.5 text-sm text-slate-700 focus:border-cyan-400 focus:outline-none focus:ring-2 focus:ring-cyan-100"
+            className="w-full rounded-lg border border-cyan-200 bg-white px-2.5 py-2 text-sm text-slate-700 focus:border-cyan-400 focus:outline-none focus:ring-2 focus:ring-cyan-100"
           >
             <option value="">All rivers</option>
             {(riversQuery.data ?? []).map((r) => (
@@ -104,8 +111,18 @@ export default function HomePage() {
       </div>
 
       {/* Standard ranges reference */}
-      <div className="absolute top-4 right-4 z-10 w-56 rounded-2xl border border-cyan-100 bg-white/90 backdrop-blur-sm p-4 shadow-lg shadow-cyan-900/5">
-        <h2 className="text-sm font-semibold text-slate-900">Standard ranges</h2>
+      <details className="mx-4 mt-3 md:absolute md:top-4 md:right-4 md:z-10 md:mx-0 md:mt-0 md:w-56 group rounded-2xl border border-cyan-100 bg-white/90 backdrop-blur-sm p-4 shadow-lg shadow-cyan-900/5 md:open:pb-4" open>
+        <summary className="flex cursor-pointer list-none items-center justify-between text-sm font-semibold text-slate-900 md:pointer-events-none">
+          Standard ranges
+          <svg
+            viewBox="0 0 20 20"
+            fill="currentColor"
+            aria-hidden
+            className="h-4 w-4 text-slate-400 transition-transform group-open:rotate-180 md:hidden"
+          >
+            <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd" />
+          </svg>
+        </summary>
         <dl className="mt-3 space-y-1.5 text-sm">
           {STANDARD_RANGES.map((r) => (
             <div key={r.label} className="flex items-center justify-between gap-4">
@@ -114,9 +131,11 @@ export default function HomePage() {
             </div>
           ))}
         </dl>
-      </div>
+      </details>
 
-      <StationMap stations={stations} readingsByStation={readingsByStation} />
+      <div className="mt-3 md:mt-0 flex flex-col flex-1 min-h-[280px]">
+        <StationMap stations={stations} readingsByStation={readingsByStation} />
+      </div>
     </div>
   );
 }

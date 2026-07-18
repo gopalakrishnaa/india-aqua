@@ -6,7 +6,7 @@ import { api } from "@/lib/api";
 import { SEVERITY_META, severityOf } from "@/lib/status";
 
 export default function DeficiencyPage() {
-  const { data, error, isLoading } = useSWR("deficiency", () => api.deficiency(), {
+  const { data, error, isLoading, mutate } = useSWR("deficiency", () => api.deficiency(), {
     refreshInterval: 60_000,
   });
 
@@ -26,7 +26,14 @@ export default function DeficiencyPage() {
       )}
       {error && (
         <div className="rounded-2xl border border-red-100 bg-red-50/70 p-6 text-sm text-red-700">
-          Couldn&apos;t load the deficiency report.
+          <p>Couldn&apos;t load the deficiency report.</p>
+          <button
+            type="button"
+            onClick={() => mutate()}
+            className="mt-3 inline-flex h-9 items-center rounded-lg bg-red-600 px-4 text-sm font-medium text-white hover:bg-red-700"
+          >
+            Retry
+          </button>
         </div>
       )}
       {!isLoading && !error && (!data || data.length === 0) && (
@@ -39,8 +46,8 @@ export default function DeficiencyPage() {
       )}
 
       {data && data.length > 0 && (
-        <div className="overflow-hidden rounded-2xl border border-cyan-100 bg-white shadow-sm shadow-cyan-900/5">
-          <table className="w-full text-sm text-left">
+        <div className="overflow-x-auto rounded-2xl border border-cyan-100 bg-white shadow-sm shadow-cyan-900/5">
+          <table className="w-full min-w-[560px] text-sm text-left">
             <thead className="bg-cyan-50/80 text-slate-500">
               <tr>
                 <th className="px-4 py-3 font-medium">Station</th>

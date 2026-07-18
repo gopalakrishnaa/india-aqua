@@ -1,7 +1,14 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import Map, { Layer, Marker, Popup, Source } from "react-map-gl/maplibre";
+import { useEffect, useMemo, useRef, useState } from "react";
+import Map, {
+  Layer,
+  Marker,
+  NavigationControl,
+  Popup,
+  Source,
+  type MapRef,
+} from "react-map-gl/maplibre";
 import Link from "next/link";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { SEVERITY_META, severityOf } from "@/lib/status";
@@ -19,7 +26,37 @@ const BASEMAP_STYLE = "https://basemaps.cartocdn.com/gl/positron-gl-style/style.
 // Source: DataMeet (github.com/datameet/maps), simplified for web display.
 const INDIA_BOUNDARY_URL = "/geo/india-boundary.geojson";
 
+// Shown only until the first fitBounds() resolves once station coordinates
+// are known — an approximate India-wide framing, not a fixed default.
+const FALLBACK_VIEW = { longitude: 82.5, latitude: 26, zoom: 4 };
+
+const FIT_BOUNDS_PADDING = { top: 100, bottom: 40, left: 40, right: 40 };
+const FIT_BOUNDS_MAX_ZOOM = 8;
+
 type StationWithIssues = Station & { issueCount: number; latest: Reading | null };
+type LngLatBounds = [[number, number], [number, number]];
+
+function boundsOf(stations: Station[]): LngLatBounds | null {
+  const coords = stations
+    .filter((s): s is Station & { latitude: number; longitude: number } =>
+      s.latitude !== null && s.longitude !== null,
+    )
+    .map((s) => [s.longitude, s.latitude] as [number, number]);
+  if (coords.length === 0) return null;
+
+  let [minLng, minLat] = coords[0];
+  let [maxLng, maxLat] = coords[0];
+  for (const [lng, lat] of coords) {
+    if (lng < minLng) minLng = lng;
+    if (lng > maxLng) maxLng = lng;
+    if (lat < minLat) minLat = lat;
+    if (lat > maxLat) maxLat = lat;
+  }
+  return [
+    [minLng, minLat],
+    [maxLng, maxLat],
+  ];
+}
 
 export function StationMap({
   stations,
@@ -29,6 +66,8 @@ export function StationMap({
   readingsByStation: Map<number, { reading: Reading; issueCount: number }>;
 }) {
   const [selected, setSelected] = useState<StationWithIssues | null>(null);
+  const mapRef = useRef<MapRef>(null);
+  const hasFitOnce = useRef(false);
 
   const points = useMemo<StationWithIssues[]>(
     () =>
@@ -41,12 +80,38 @@ export function StationMap({
     [stations, readingsByStation],
   );
 
+  // Frame every known station on load, and re-frame when the station set
+  // itself changes (e.g. river filter) — not on every readings poll.
+  const bounds = useMemo(() => boundsOf(stations), [stations]);
+
+  useEffect(() => {
+    if (!bounds || !hasFitOnce.current || !mapRef.current) return;
+    mapRef.current.fitBounds(bounds, {
+      padding: FIT_BOUNDS_PADDING,
+      maxZoom: FIT_BOUNDS_MAX_ZOOM,
+      duration: 800,
+    });
+  }, [bounds]);
+
   return (
     <Map
-      initialViewState={{ longitude: 82.5, latitude: 26, zoom: 5 }}
+      ref={mapRef}
+      initialViewState={FALLBACK_VIEW}
       style={{ flex: 1 }}
       mapStyle={BASEMAP_STYLE}
+      onLoad={() => {
+        if (bounds) {
+          mapRef.current?.fitBounds(bounds, {
+            padding: FIT_BOUNDS_PADDING,
+            maxZoom: FIT_BOUNDS_MAX_ZOOM,
+            duration: 0,
+          });
+        }
+        hasFitOnce.current = true;
+      }}
     >
+      <NavigationControl position="bottom-right" />
+
       <Source id="india-boundary" type="geojson" data={INDIA_BOUNDARY_URL}>
         <Layer
           id="india-boundary-fill"
@@ -75,11 +140,15 @@ export function StationMap({
           >
             <button
               aria-label={`${s.name} — ${meta.label}`}
-              className={`relative block h-4 w-4 rounded-full border-2 border-white cursor-pointer aqua-marker ${
-                sev === "critical" ? "aqua-pulse" : ""
-              }`}
-              style={{ backgroundColor: meta.hex, color: meta.hex }}
-            />
+              className="grid h-10 w-10 place-items-center cursor-pointer"
+            >
+              <span
+                className={`relative block h-4 w-4 rounded-full border-2 border-white aqua-marker ${
+                  sev === "critical" ? "aqua-pulse" : ""
+                }`}
+                style={{ backgroundColor: meta.hex, color: meta.hex }}
+              />
+            </button>
           </Marker>
         );
       })}
@@ -91,7 +160,6 @@ export function StationMap({
           onClose={() => setSelected(null)}
           closeButton={false}
           closeOnClick={false}
-          anchor="bottom"
           offset={14}
           maxWidth="260px"
         >
@@ -125,7 +193,7 @@ function StationPopup({
           type="button"
           aria-label="Close"
           onClick={onClose}
-          className="shrink-0 grid h-5 w-5 place-items-center rounded-md text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+          className="shrink-0 grid h-8 w-8 place-items-center rounded-md text-slate-400 hover:bg-slate-100 hover:text-slate-700"
         >
           ✕
         </button>

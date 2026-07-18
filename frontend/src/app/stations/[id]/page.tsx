@@ -37,7 +37,7 @@ export default function StationPage() {
   const params = useParams<{ id: string }>();
   const stationId = Number(params.id);
 
-  const { data, error, isLoading } = useSWR(["history", stationId], () =>
+  const { data, error, isLoading, mutate } = useSWR(["history", stationId], () =>
     api.readingsHistory(stationId, 30),
   );
 
@@ -86,7 +86,14 @@ export default function StationPage() {
       )}
       {error && (
         <div className="rounded-2xl border border-red-100 bg-red-50/70 p-6 text-sm text-red-700">
-          Couldn&apos;t load reading history.
+          <p>Couldn&apos;t load reading history.</p>
+          <button
+            type="button"
+            onClick={() => mutate()}
+            className="mt-3 inline-flex h-9 items-center rounded-lg bg-red-600 px-4 text-sm font-medium text-white hover:bg-red-700"
+          >
+            Retry
+          </button>
         </div>
       )}
       {!isLoading && !error && chartData.length === 0 && (
