@@ -2,6 +2,7 @@
 
 import useSWR from "swr";
 import { useMemo, useState } from "react";
+import { ParamInfoPanel } from "@/components/ParamInfoPanel";
 import { StationMap } from "@/components/StationMap";
 import { api } from "@/lib/api";
 import { readingIssues, severityOf, SEVERITY_META, STANDARD_RANGES } from "@/lib/status";
@@ -71,43 +72,47 @@ export default function HomePage() {
 
   return (
     <div className="flex-1 flex flex-col md:relative">
-      {/* Station status summary */}
-      <div className="mx-4 mt-4 md:absolute md:top-4 md:left-4 md:z-10 md:mx-0 md:mt-0 md:w-56 rounded-2xl border border-cyan-100 bg-white/90 backdrop-blur-sm p-4 shadow-lg shadow-cyan-900/5">
-        <div className="flex items-baseline justify-between">
-          <h2 className="text-sm font-semibold text-slate-900">Stations</h2>
-          <span className="text-xs text-slate-400">{total} total</span>
+      {/* Station status summary + parameter info, stacked on the left */}
+      <div className="md:absolute md:top-4 md:left-4 md:z-10 md:w-56 md:flex md:max-h-[calc(100vh-6rem)] md:flex-col md:gap-3 md:overflow-y-auto">
+        <div className="mx-4 mt-4 md:mx-0 md:mt-0 rounded-2xl border border-cyan-100 bg-white/90 backdrop-blur-sm p-4 shadow-lg shadow-cyan-900/5">
+          <div className="flex items-baseline justify-between">
+            <h2 className="text-sm font-semibold text-slate-900">Stations</h2>
+            <span className="text-xs text-slate-400">{total} total</span>
+          </div>
+
+          <label className="mt-3 block">
+            <span className="sr-only">Filter by river</span>
+            <select
+              value={river}
+              onChange={(e) => setRiver(e.target.value)}
+              className="w-full rounded-lg border border-cyan-200 bg-white px-2.5 py-2 text-sm text-slate-700 focus:border-cyan-400 focus:outline-none focus:ring-2 focus:ring-cyan-100"
+            >
+              <option value="">All rivers</option>
+              {(riversQuery.data ?? []).map((r) => (
+                <option key={r} value={r}>
+                  {r}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <div className="mt-3 space-y-2">
+            {(["good", "warning", "critical"] as Severity[]).map((sev) => {
+              const meta = SEVERITY_META[sev];
+              return (
+                <div key={sev} className="flex items-center gap-2.5">
+                  <span className={`h-2.5 w-2.5 rounded-full ${meta.dot}`} />
+                  <span className="flex-1 text-sm text-slate-600">{meta.label}</span>
+                  <span className="text-sm font-semibold text-slate-900 tabular-nums">
+                    {counts[sev]}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
         </div>
 
-        <label className="mt-3 block">
-          <span className="sr-only">Filter by river</span>
-          <select
-            value={river}
-            onChange={(e) => setRiver(e.target.value)}
-            className="w-full rounded-lg border border-cyan-200 bg-white px-2.5 py-2 text-sm text-slate-700 focus:border-cyan-400 focus:outline-none focus:ring-2 focus:ring-cyan-100"
-          >
-            <option value="">All rivers</option>
-            {(riversQuery.data ?? []).map((r) => (
-              <option key={r} value={r}>
-                {r}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <div className="mt-3 space-y-2">
-          {(["good", "warning", "critical"] as Severity[]).map((sev) => {
-            const meta = SEVERITY_META[sev];
-            return (
-              <div key={sev} className="flex items-center gap-2.5">
-                <span className={`h-2.5 w-2.5 rounded-full ${meta.dot}`} />
-                <span className="flex-1 text-sm text-slate-600">{meta.label}</span>
-                <span className="text-sm font-semibold text-slate-900 tabular-nums">
-                  {counts[sev]}
-                </span>
-              </div>
-            );
-          })}
-        </div>
+        <ParamInfoPanel className="mx-4 mt-3 md:mx-0 md:mt-0" />
       </div>
 
       {/* Standard ranges reference */}
