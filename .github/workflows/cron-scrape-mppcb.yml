@@ -1,0 +1,32 @@
+name: MPPCB rivers scrape
+
+# Same reasoning as cron-scrape.yml: Vercel Hobby plan cron caps at once/day,
+# so GitHub Actions is the real scheduler here too. Separate workflow (not a
+# second job in cron-scrape.yml) because this source needs its own cadence:
+# the MPPCB portal doesn't advertise a refresh interval the way CPCB's SWAN
+# feed does, and some of its stations go stale for weeks, so hourly is
+# plenty rather than matching CPCB's 30min.
+on:
+  schedule:
+    - cron: "0 * * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: mppcb-scrape
+  cancel-in-progress: false
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - name: Trigger scrape
+        run: |
+          # Observed up to ~155s end to end: the WQI classification step is
+          # one LLM call per station, and this hits it sequentially for all
+          # 9 stations, same as cron-scrape.yml's CPCB job. Generous
+          # headroom here since this workflow hasn't run on a real schedule
+          # yet.
+          curl -sS -f -X GET "https://indiaaqua-api.vercel.app/api/v1/internal/cron/scrape?source=mppcb_rivers" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            --max-time 300

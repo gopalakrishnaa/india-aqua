@@ -21,11 +21,13 @@ from india_aqua.db.models import MonitoringStation, ValidationLog, WaterQualityR
 from india_aqua.scrapers.base import BaseScraper, ScrapedReading
 from india_aqua.scrapers.cpcb_realtime import CPCBRealtimeScraper
 from india_aqua.scrapers.ganga_sources import DemoScraper, PlaywrightScraper
+from india_aqua.scrapers.mppcb_rivers import MPPCBRiversScraper
 
 logger = logging.getLogger(__name__)
 
 SCRAPER_SOURCES: dict[str, type[BaseScraper]] = {
     "cpcb_realtime": CPCBRealtimeScraper,  # live SWAN network, real values
+    "mppcb_rivers": MPPCBRiversScraper,  # live MPPCB Narmada/Kshipra/Kanha portal
     "demo": DemoScraper,  # synthetic, for local dev without network access
     "playwright": PlaywrightScraper,  # legacy: page-text snippet + synthetic metrics
 }
@@ -52,8 +54,11 @@ def _get_or_create_station(db: Session, scraped: ScrapedReading) -> MonitoringSt
         )
         db.add(station)
         db.flush()
-    elif station.river != scraped.river and scraped.river:
-        station.river = scraped.river
+    else:
+        if station.river != scraped.river and scraped.river:
+            station.river = scraped.river
+        if station.location != scraped.location and scraped.location:
+            station.location = scraped.location
     return station
 
 
