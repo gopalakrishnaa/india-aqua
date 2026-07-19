@@ -17,7 +17,7 @@ from india_aqua.services.readings import (
     list_rivers,
     list_stations,
 )
-from india_aqua.services.scrape_pipeline import run_scrape_pipeline
+from india_aqua.services.scrape_pipeline import SCRAPER_SOURCES, run_scrape_pipeline
 
 router = APIRouter(prefix="/api/v1", tags=["water-quality"])
 
@@ -99,22 +99,27 @@ async def api_trigger_scrape(
 
 @router.get("/internal/cron/scrape", response_model=ScrapeResultOut, include_in_schema=False)
 async def cron_trigger_scrape(
+    source: str = Query(default="cpcb_realtime"),
     authorization: str | None = Header(default=None),
     db: Session = Depends(get_db),
 ):
-    """Scheduled entry point for Vercel Cron (GET-only, no per-client API key).
-    Vercel automatically sends `Authorization: Bearer $CRON_SECRET` on cron
-    requests when a CRON_SECRET env var is set on the project. That's the
-    only thing guarding this, not the SaaS tier system (not a client-facing
-    feature). Disabled entirely (404) if CRON_SECRET isn't set, so a
-    misconfigured deploy fails closed rather than exposing an unauthenticated
-    write endpoint."""
+    """Scheduled entry point for Vercel Cron and the GitHub Actions cron
+    workflow (GET-only, no per-client API key). Both send
+    `Authorization: Bearer $CRON_SECRET`, which is the only thing guarding
+    this, not the SaaS tier system (not a client-facing feature). Disabled
+    entirely (404) if CRON_SECRET isn't set, so a misconfigured deploy fails
+    closed rather than exposing an unauthenticated write endpoint.
+
+    `source` picks which scraper runs (see SCRAPER_SOURCES); each source is
+    triggered on its own schedule from a separate cron entry."""
     settings = get_settings()
     if not settings.cron_secret:
         raise HTTPException(status_code=404, detail="Not found")
     if authorization != f"Bearer {settings.cron_secret}":
         raise HTTPException(status_code=401, detail="Invalid cron secret")
-    result = await run_scrape_pipeline(db, source="cpcb_realtime")
+    if source not in SCRAPER_SOURCES:
+        raise HTTPException(status_code=400, detail=f"Unknown source {source!r}, expected one of {sorted(SCRAPER_SOURCES)}")
+    result = await run_scrape_pipeline(db, source=source)
     return ScrapeResultOut(**result)
 
 
