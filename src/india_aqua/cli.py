@@ -14,6 +14,8 @@ from india_aqua.config import get_settings
 from india_aqua.db.base import Base
 from india_aqua.db.session import SessionLocal, engine
 from india_aqua.services.cpcb_import import run_cpcb_import
+from india_aqua.services.ganga_analysis import analyze_ganga_data
+from india_aqua.services.ganga_import import import_ganga_workbooks
 from india_aqua.services.seed import run_seed
 
 app = typer.Typer(name="india-aqua", help="Indian river water-quality SaaS CLI")
@@ -80,6 +82,24 @@ def import_cpcb_report(
         console.print(table)
     finally:
         db.close()
+
+
+@app.command()
+def import_ganga_data(output_dir: str = typer.Option("data/ganga", help="Where to download and store the Excel data")) -> None:
+    """Download the Excel workbooks published on the Ganga data portal and normalize them."""
+    _setup_logging()
+    rows = import_ganga_workbooks(output_dir=output_dir)
+    console.print(f"Imported {len(rows)} normalized rows from the Ganga portal")
+
+
+@app.command()
+def analyze_ganga_data_file(
+    csv_path: str = typer.Argument(..., help="Path to the normalized Ganga CSV created by import_ganga_data"),
+) -> None:
+    """Summarize the cleaned Ganga dataset and write a markdown report."""
+    _setup_logging()
+    report = analyze_ganga_data(csv_path)
+    console.print(report)
 
 
 @app.command()
