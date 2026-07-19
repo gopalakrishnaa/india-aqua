@@ -1,14 +1,11 @@
 name: MPPCB rivers scrape
 
-# Same reasoning as cron-scrape.yml: Vercel Hobby plan cron caps at once/day,
-# so GitHub Actions is the real scheduler here too. Separate workflow (not a
-# second job in cron-scrape.yml) because this source needs its own cadence:
-# the MPPCB portal doesn't advertise a refresh interval the way CPCB's SWAN
-# feed does, and some of its stations go stale for weeks, so hourly is
-# plenty rather than matching CPCB's 30min.
+# See cron-scrape.yml: GitHub Actions' `schedule` trigger proved unreliable
+# on this repo (didn't fire at all for the first 2+ hours after this
+# workflow was added). An external cron pinger (cron-job.org) now owns the
+# actual scheduling by calling the endpoint below directly; this workflow
+# keeps workflow_dispatch only, for manual runs/testing.
 on:
-  schedule:
-    - cron: "0 * * * *"
   workflow_dispatch:
 
 concurrency:

@@ -1,11 +1,12 @@
 name: CPCB realtime scrape
 
-# Vercel Hobby plan caps native cron at once/day, but the CPCB SWAN feed
-# refreshes ~every 30min. This workflow is the actual scheduler. It just
-# calls the existing cron-guarded endpoint on that cadence instead.
+# GitHub Actions' `schedule` trigger is best-effort, not guaranteed: in
+# practice it skipped or delayed the large majority of its */30 firings on
+# this repo, leaving data hours stale. An external cron pinger
+# (cron-job.org) now owns the actual scheduling by calling the endpoint
+# below directly; this workflow keeps workflow_dispatch only, for manual
+# runs/testing.
 on:
-  schedule:
-    - cron: "*/30 * * * *"
   workflow_dispatch:
 
 concurrency:
