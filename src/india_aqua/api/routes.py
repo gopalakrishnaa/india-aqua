@@ -10,6 +10,7 @@ from india_aqua.api.schemas import DeficiencyOut, ReadingOut, ScrapeResultOut, S
 from india_aqua.config import get_settings
 from india_aqua.db.models import SaasClient
 from india_aqua.db.session import get_db
+from india_aqua.services.ganga_import import import_ganga_workbooks
 from india_aqua.services.readings import (
     get_deficiency_report,
     get_latest_readings,
@@ -116,3 +117,17 @@ async def cron_trigger_scrape(
         raise HTTPException(status_code=401, detail="Invalid cron secret")
     result = await run_scrape_pipeline(db, source="cpcb_realtime")
     return ScrapeResultOut(**result)
+
+
+@router.get("/internal/cron/ganga", include_in_schema=False)
+async def cron_trigger_ganga_refresh(
+    authorization: str | None = Header(default=None),
+):
+    """Refresh the Ganga Excel data on a schedule via a cron job."""
+    settings = get_settings()
+    if not settings.cron_secret:
+        raise HTTPException(status_code=404, detail="Not found")
+    if authorization != f"Bearer {settings.cron_secret}":
+        raise HTTPException(status_code=401, detail="Invalid cron secret")
+    rows = import_ganga_workbooks("data/ganga")
+    return {"refreshed": True, "rows_imported": len(rows)}

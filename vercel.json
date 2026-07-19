@@ -5,6 +5,10 @@
     {
       "path": "/api/v1/internal/cron/scrape",
       "schedule": "0 3 * * *"
+    },
+    {
+      "path": "/api/v1/internal/cron/ganga",
+      "schedule": "0 6 * * *"
     }
   ]
 }
