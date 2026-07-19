@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import Map, {
   Layer,
   Marker,
@@ -181,6 +182,89 @@ function formatRelativeTime(iso: string): string {
   return `${days}d ago`;
 }
 
+const PARAM_INFO: { label: string; why: string }[] = [
+  {
+    label: "WQI (Water Quality Index)",
+    why: "A single 0-100 score combining pH, DO, BOD, COD, and turbidity into one number, so water quality can be compared across stations at a glance.",
+  },
+  {
+    label: "pH",
+    why: "How acidic or alkaline the water is. Safe range is roughly 6.5-8.5 — outside it, aquatic life is harmed and it often signals industrial or sewage discharge.",
+  },
+  {
+    label: "Dissolved Oxygen (DO)",
+    why: "Oxygen dissolved in the water that fish and other aquatic life need to survive. Low DO usually means heavy organic pollution is consuming the oxygen.",
+  },
+  {
+    label: "BOD (Biochemical Oxygen Demand)",
+    why: "How much oxygen microbes use while breaking down organic waste in the water. High BOD points to sewage or organic effluent pollution.",
+  },
+  {
+    label: "COD (Chemical Oxygen Demand)",
+    why: "Total oxygen needed to break down both organic and chemical pollutants, including ones microbes can't digest. Flags industrial/chemical contamination that BOD alone misses.",
+  },
+  {
+    label: "Turbidity",
+    why: "Cloudiness caused by suspended particles. High turbidity blocks sunlight for aquatic plants and can carry pathogens attached to those particles.",
+  },
+];
+
+type Usability = { label: string; tone: string };
+
+// CPCB's "Primary Water Quality Criteria" for designated best-use classes A
+// (drinking, after disinfection only) and B (outdoor bathing) also require
+// total coliform, which isn't in this dataset — so this is an approximation
+// from pH/DO/BOD alone, not an official CPCB classification.
+function usabilityOf(latest: Reading | null): Usability | null {
+  if (!latest) return null;
+  const { ph, dissolved_oxygen_mg_l: doVal, bod_mg_l: bod } = latest;
+  if (ph == null || doVal == null || bod == null) return null;
+
+  const phOk = ph >= 6.5 && ph <= 8.5;
+  if (phOk && doVal >= 6 && bod <= 2) {
+    return { label: "Drinkable", tone: "bg-emerald-50 text-emerald-700" };
+  }
+  if (phOk && doVal >= 5 && bod <= 3) {
+    return { label: "Bathable", tone: "bg-sky-50 text-sky-700" };
+  }
+  return { label: "Not bathable or drinkable", tone: "bg-rose-50 text-rose-700" };
+}
+
+function ParamInfoModal({ onClose }: { onClose: () => void }) {
+  return createPortal(
+    <div
+      className="fixed inset-0 z-[1000] flex items-center justify-center bg-slate-900/40 p-4"
+      onClick={onClose}
+    >
+      <div
+        className="max-h-[80vh] w-full max-w-sm overflow-y-auto rounded-xl bg-white p-4 shadow-xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-semibold text-slate-900">Why these parameters matter</h3>
+          <button
+            type="button"
+            aria-label="Close"
+            onClick={onClose}
+            className="grid h-7 w-7 place-items-center rounded-md text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+          >
+            ✕
+          </button>
+        </div>
+        <dl className="mt-3 space-y-3">
+          {PARAM_INFO.map((p) => (
+            <div key={p.label}>
+              <dt className="text-xs font-semibold text-slate-800">{p.label}</dt>
+              <dd className="mt-0.5 text-xs leading-relaxed text-slate-600">{p.why}</dd>
+            </div>
+          ))}
+        </dl>
+      </div>
+    </div>,
+    document.body,
+  );
+}
+
 function StationPopup({
   station,
   onClose,
@@ -190,6 +274,8 @@ function StationPopup({
 }) {
   const meta = SEVERITY_META[severityOf(station.issueCount)];
   const latest = station.latest;
+  const usability = usabilityOf(latest);
+  const [showInfo, setShowInfo] = useState(false);
 
   return (
     <div className="w-56">
@@ -258,12 +344,31 @@ function StationPopup({
         <p className="mt-2.5 text-xs text-slate-500">No recent readings</p>
       )}
 
+      <button
+        type="button"
+        onClick={() => setShowInfo(true)}
+        className="mt-2 flex items-center gap-1 text-xs text-slate-500 hover:text-cyan-700"
+      >
+        <span className="grid h-4 w-4 place-items-center rounded-full border border-slate-300 text-[10px] font-semibold">
+          i
+        </span>
+        What do these mean?
+      </button>
+
+      {usability && (
+        <div className={`mt-2.5 rounded-lg px-2.5 py-1.5 text-center text-xs font-medium ${usability.tone}`}>
+          {usability.label}
+        </div>
+      )}
+
       <Link
         href={`/stations/${station.id}`}
         className="mt-3 flex items-center justify-center gap-1 rounded-lg bg-cyan-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-cyan-700"
       >
         View history →
       </Link>
+
+      {showInfo && <ParamInfoModal onClose={() => setShowInfo(false)} />}
     </div>
   );
 }

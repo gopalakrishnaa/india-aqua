@@ -1,0 +1,18 @@
+name: CPCB realtime scrape
+
+# Vercel Hobby plan caps native cron at once/day, but the CPCB SWAN feed
+# refreshes ~every 30min. This workflow is the actual scheduler — it just
+# calls the existing cron-guarded endpoint on that cadence instead.
+on:
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger scrape
+        run: |
+          curl -sS -f -X GET "https://indiaaqua-api.vercel.app/api/v1/internal/cron/scrape" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}"
