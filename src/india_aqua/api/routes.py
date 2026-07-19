@@ -10,7 +10,6 @@ from india_aqua.api.schemas import DeficiencyOut, ReadingOut, ScrapeResultOut, S
 from india_aqua.config import get_settings
 from india_aqua.db.models import SaasClient
 from india_aqua.db.session import get_db
-from india_aqua.services.ganga_import import import_ganga_workbooks
 from india_aqua.services.readings import (
     get_deficiency_report,
     get_latest_readings,
@@ -129,5 +128,10 @@ async def cron_trigger_ganga_refresh(
         raise HTTPException(status_code=404, detail="Not found")
     if authorization != f"Bearer {settings.cron_secret}":
         raise HTTPException(status_code=401, detail="Invalid cron secret")
+    # Imported lazily: pandas is excluded from requirements.txt's slim Vercel
+    # bundle (see comment there), so importing this at module load would
+    # break every route, not just this one.
+    from india_aqua.services.ganga_import import import_ganga_workbooks
+
     rows = import_ganga_workbooks("data/ganga")
     return {"refreshed": True, "rows_imported": len(rows)}
