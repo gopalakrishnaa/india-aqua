@@ -1,4 +1,4 @@
-"""CPCB realtime scraper — pure parsing/mapping logic, no network."""
+"""CPCB realtime scraper: pure parsing/mapping logic, no network."""
 
 from india_aqua.scrapers.cpcb_realtime import (
     PARAMETER_MAP,

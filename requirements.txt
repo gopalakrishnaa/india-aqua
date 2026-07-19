@@ -1,4 +1,4 @@
-# Serverless (Vercel) runtime deps — slim subset of pyproject.toml.
+# Serverless (Vercel) runtime deps. A slim subset of pyproject.toml.
 # No playwright/streamlit/pandas/plotly/uvicorn: not used by the API app,
 # and the scraper falls back to demo mode without playwright.
 fastapi>=0.115

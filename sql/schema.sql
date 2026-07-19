@@ -1,4 +1,4 @@
--- India Aqua PostgreSQL schema (reference — Alembic is source of truth for migrations)
+-- India Aqua PostgreSQL schema (reference: Alembic is source of truth for migrations)
 
 CREATE TABLE IF NOT EXISTS monitoring_stations (
     id SERIAL PRIMARY KEY,

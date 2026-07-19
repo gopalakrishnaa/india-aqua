@@ -1,6 +1,6 @@
 # india-aqua
 
-> SaaS-ready, API-first dashboard for **Indian river water quality** — an autonomous
+> SaaS-ready, API-first dashboard for **Indian river water quality**. An autonomous
 > AI agent scrapes public data, validates it against hallucinations using an LLM at
 > `temperature=0`, stores it in PostgreSQL, and visualizes it via Streamlit BI.
 
@@ -16,8 +16,9 @@ An autonomous agent:
 1. **Scrapes** water-quality metrics from public sources (CPCB, Namami Gange, India WRIS)
    using a pluggable Playwright framework.
 2. **Validates** every extracted value with an LLM running at `temperature=0`. The LLM acts
-   strictly as a validator — *"does this structured data perfectly match the raw scraped text,
-   or are there fabricated values?"* If validation fails, the data point is logged and **skipped**.
+   strictly as a validator, asking only *"does this structured data perfectly match the raw
+   scraped text, or are there fabricated values?"* If validation fails, the data point is
+   logged and **skipped**.
 3. **Stores** only validated, traceable readings in PostgreSQL (every row keeps its `source_url`).
 4. **Serves** the data via a SaaS API (FastAPI) with API-key auth + per-tier rate limits.
 5. **Visualizes** it on a hosted BI dashboard (Streamlit) with three views: current status,
@@ -45,7 +46,7 @@ cp .env.example .env       # fill in DATABASE_URL + NVIDIA_API_KEY
 uv sync                    # install deps
 uv run playwright install chromium   # browser for live scraping
 
-# 2. Database (uses your DATABASE_URL — e.g. Supabase project)
+# 2. Database (uses your DATABASE_URL, e.g. a Supabase project)
 uv run alembic upgrade head
 
 # 3. Seed realistic sample data

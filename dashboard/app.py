@@ -43,7 +43,7 @@ def status_color(do: float | None) -> str:
     return "red"
 
 
-st.title("💧 India Aqua — Water Quality Intelligence")
+st.title("💧 India Aqua: Water Quality Intelligence")
 st.caption("Validated readings from CPCB / Namami Gange / India WRIS sources")
 
 if not API_KEY:
@@ -113,7 +113,7 @@ with tab_deficiency:
             st.success("All stations have recent, complete readings.")
         else:
             for item in deficiencies:
-                with st.expander(f"⚠️ {item['station_name']} — {item['location']}", expanded=True):
+                with st.expander(f"⚠️ {item['station_name']}, {item['location']}", expanded=True):
                     for issue in item["issues"]:
                         st.markdown(f"- {issue}")
                     if item.get("last_reading_at"):
@@ -126,7 +126,7 @@ with tab_trends:
     try:
         stations = fetch_json("/api/v1/stations")
         station_options = {s["name"]: s["id"] for s in stations}
-        selected = st.selectbox("Station", options=list(station_options.keys()) or ["—"])
+        selected = st.selectbox("Station", options=list(station_options.keys()) or ["N/A"])
         days = st.slider("Days of history", min_value=7, max_value=90, value=30)
 
         if station_options and selected in station_options:
@@ -154,7 +154,7 @@ with tab_trends:
                     df,
                     x="recorded_at",
                     y=metric,
-                    title=f"{selected} — {metric} over {days} days",
+                    title=f"{selected}: {metric} over {days} days",
                     markers=True,
                 )
                 st.plotly_chart(fig, use_container_width=True)

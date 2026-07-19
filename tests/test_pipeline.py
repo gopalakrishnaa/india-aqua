@@ -1,4 +1,4 @@
-"""Scrape pipeline tests — dedup, river attribution, analyze wiring."""
+"""Scrape pipeline tests: dedup, river attribution, analyze wiring."""
 
 from datetime import UTC, datetime
 from unittest.mock import MagicMock

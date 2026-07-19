@@ -86,7 +86,7 @@ export default function DeficiencyPage() {
                       </div>
                     </td>
                     <td className="px-4 py-3 text-slate-500 whitespace-nowrap">
-                      {d.last_reading_at ?? "—"}
+                      {d.last_reading_at ?? "N/A"}
                     </td>
                   </tr>
                 );

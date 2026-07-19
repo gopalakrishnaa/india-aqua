@@ -1,4 +1,4 @@
-"""LLM hallucination validator — temperature=0, strict match check."""
+"""LLM hallucination validator: temperature=0, strict match check."""
 
 from __future__ import annotations
 

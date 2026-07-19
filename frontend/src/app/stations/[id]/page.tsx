@@ -132,7 +132,7 @@ export default function StationPage() {
             <div key={s.label} className="rounded-xl border border-cyan-100 bg-white p-3">
               <p className="text-xs text-slate-400">{s.label}</p>
               <p className="mt-0.5 text-lg font-semibold text-slate-900 tabular-nums">
-                {s.value ?? "—"}
+                {s.value ?? "N/A"}
                 {s.value !== null && s.unit ? (
                   <span className="ml-1 text-xs font-normal text-slate-400">{s.unit}</span>
                 ) : null}

@@ -1,11 +1,11 @@
 """Multi-agent scrape pipeline.
 
 Flow per reading:
-  1. scrape        — river scrapers produce ScrapedReading
-  2. verify        — LLMValidator (temperature=0) rejects hallucinated/mismatched values
-  3. analyze       — WQIAnalyzer computes Water Quality Index + class
-  4. dedup         — skip readings already stored for the same station + timestamp
-  5. push          — persist validated, analyzed, unique reading
+  1. scrape        river scrapers produce ScrapedReading
+  2. verify        LLMValidator (temperature=0) rejects hallucinated/mismatched values
+  3. analyze       WQIAnalyzer computes Water Quality Index + class
+  4. dedup         skip readings already stored for the same station + timestamp
+  5. push          persist validated, analyzed, unique reading
 """
 
 from __future__ import annotations
@@ -25,7 +25,7 @@ from india_aqua.scrapers.ganga_sources import DemoScraper, PlaywrightScraper
 logger = logging.getLogger(__name__)
 
 SCRAPER_SOURCES: dict[str, type[BaseScraper]] = {
-    "cpcb_realtime": CPCBRealtimeScraper,  # live SWAN network — real values
+    "cpcb_realtime": CPCBRealtimeScraper,  # live SWAN network, real values
     "demo": DemoScraper,  # synthetic, for local dev without network access
     "playwright": PlaywrightScraper,  # legacy: page-text snippet + synthetic metrics
 }
@@ -77,11 +77,11 @@ def process_reading(
 ) -> str:
     """Returns one of: "stored", "rejected", "duplicate".
 
-    `validator=None` skips the hallucination check — appropriate for sources
+    `validator=None` skips the hallucination check. Appropriate for sources
     that hand us structured data directly (see BaseScraper.requires_llm_validation),
     where there was no LLM extraction step for the validator to police.
     """
-    # 2. verify (hallucination / mismatch check, temperature=0) — when applicable
+    # 2. verify (hallucination / mismatch check, temperature=0), when applicable
     if validator is not None:
         result = validator.validate(scraped.raw_text, scraped.metrics)
         if not result.valid:
@@ -99,13 +99,13 @@ def process_reading(
 
     station = _get_or_create_station(db, scraped)
 
-    # 4. dedup — skip if we already have this station+timestamp
+    # 4. dedup: skip if we already have this station+timestamp
     if _is_duplicate(db, station.id, scraped):
         db.commit()  # persist any station river update
         logger.info("Duplicate reading skipped for %s at %s", scraped.station_name, scraped.recorded_at)
         return "duplicate"
 
-    # 3. analyze — Water Quality Index + class
+    # 3. analyze: Water Quality Index + class
     analysis = analyzer.analyze(scraped.metrics)
 
     # 5. push
@@ -126,7 +126,7 @@ def process_reading(
     db.add(reading)
     db.commit()
     logger.info(
-        "Stored reading for %s (%s) — WQI %.1f %s",
+        "Stored reading for %s (%s): WQI %.1f %s",
         scraped.station_name,
         scraped.river,
         analysis.wqi,

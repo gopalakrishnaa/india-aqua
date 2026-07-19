@@ -38,7 +38,7 @@ class Settings(BaseSettings):
 
     # Shared secret for the scheduled scrape trigger (Vercel Cron -> GET
     # /api/v1/internal/cron/scrape?secret=...). Empty means the endpoint is
-    # disabled — fail closed rather than leave it open with no secret set.
+    # disabled, failing closed rather than leaving it open with no secret set.
     cron_secret: str = ""
 
     cors_origins: str = "http://localhost:8501,http://localhost:3000"

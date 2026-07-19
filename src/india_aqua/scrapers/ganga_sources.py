@@ -1,4 +1,4 @@
-"""Indian river water-quality scrapers — Playwright + demo fallback.
+"""Indian river water-quality scrapers: Playwright plus demo fallback.
 
 Covers the Ganga plus major peninsular and northern rivers. Each station
 carries its `river` so the pipeline can attribute readings correctly.
@@ -125,7 +125,7 @@ class DemoScraper(BaseScraper):
 
 
 class PlaywrightScraper(BaseScraper):
-    """Live scraper using Playwright — falls back to demo on failure."""
+    """Live scraper using Playwright. Falls back to demo on failure."""
 
     name = "playwright"
 

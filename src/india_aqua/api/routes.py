@@ -104,7 +104,7 @@ async def cron_trigger_scrape(
 ):
     """Scheduled entry point for Vercel Cron (GET-only, no per-client API key).
     Vercel automatically sends `Authorization: Bearer $CRON_SECRET` on cron
-    requests when a CRON_SECRET env var is set on the project — that's the
+    requests when a CRON_SECRET env var is set on the project. That's the
     only thing guarding this, not the SaaS tier system (not a client-facing
     feature). Disabled entirely (404) if CRON_SECRET isn't set, so a
     misconfigured deploy fails closed rather than exposing an unauthenticated

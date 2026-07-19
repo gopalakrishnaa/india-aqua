@@ -4,13 +4,14 @@ Unlike scrapers/cpcb_report.py (a biennial PDF, imported by hand), this hits
 a genuinely live public feed: rtwqmsdb1.cpcb.gov.in publishes station
 metadata and per-parameter readings as static JSON, refreshed roughly every
 30 minutes from telemetry stations across the Ganga basin. No login, no
-scraping of rendered HTML — these are the same JSON endpoints the CPCB
+scraping of rendered HTML. These are the same JSON endpoints the CPCB
 dashboard's own frontend calls.
 
-Meant to run on a schedule — see vercel.json's cron hitting
-GET /api/v1/internal/cron/scrape (daily; Vercel Hobby plan caps cron
-frequency at once/day, source itself refreshes ~every 30min) — not by hand.
-This is the one CPCB source where that's actually worth it.
+Meant to run on a schedule, not by hand. See .github/workflows/cron-scrape.yml,
+which hits GET /api/v1/internal/cron/scrape every 30min (moved off Vercel's
+native cron, since the Hobby plan caps that at once/day and the source itself
+refreshes roughly every 30min). This is the one CPCB source where that cadence
+actually matters.
 """
 
 from __future__ import annotations
@@ -31,14 +32,14 @@ STATIONS_URL = f"{BASE_URL}/data/internet/stations/stations.json"
 READINGS_URL = f"{BASE_URL}/data/internet/layers/10/index.json"
 
 # rtwqmsdb1.cpcb.gov.in's TLS chain has the same NIC-root issue as
-# nmcg.nic.in (see scrapers/cpcb_report.py) — verified fine against the OS
+# nmcg.nic.in (see scrapers/cpcb_report.py). Verified fine against the OS
 # trust store, not against certifi's bundle. Public read-only JSON, no
 # secrets in play.
 _VERIFY_TLS = False
 
 # CPCB's `stationparameter_longname` -> our schema's metric field. CPCB also
 # reports Nitrate/Conductivity/TOC/Chloride/River Stage/Depth, which we don't
-# have columns for — kept in raw_text for provenance, not stored structured.
+# have columns for, kept in raw_text for provenance, not stored structured.
 PARAMETER_MAP = {
     "pH": "ph",
     "Water Temperature": "temperature_c",
@@ -71,7 +72,7 @@ def _clean_name(raw: str) -> str:
 
 
 class CPCBRealtimeScraper(BaseScraper):
-    """Live SWAN network reader — real values, no synthetic placeholders."""
+    """Live SWAN network reader. Real values, no synthetic placeholders."""
 
     name = "cpcb_realtime"
     requires_llm_validation = False  # raw_text is generated from `metrics`, not the other way around

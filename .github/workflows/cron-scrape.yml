@@ -1,7 +1,7 @@
 name: CPCB realtime scrape
 
 # Vercel Hobby plan caps native cron at once/day, but the CPCB SWAN feed
-# refreshes ~every 30min. This workflow is the actual scheduler — it just
+# refreshes ~every 30min. This workflow is the actual scheduler. It just
 # calls the existing cron-guarded endpoint on that cadence instead.
 on:
   schedule:

@@ -15,7 +15,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import { SEVERITY_META, severityOf } from "@/lib/status";
 import type { Reading, Station } from "@/lib/types";
 
-// Free, keyless vector basemap — CARTO's CDN-backed style, built for
+// Free, keyless vector basemap. CARTO's CDN-backed style, built for
 // unlimited public use (unlike raw OSM tiles, which rate-limit automated
 // traffic per their usage policy).
 const BASEMAP_STYLE = "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json";
@@ -28,7 +28,7 @@ const BASEMAP_STYLE = "https://basemaps.cartocdn.com/gl/positron-gl-style/style.
 const INDIA_BOUNDARY_URL = "/geo/india-boundary.geojson";
 
 // Shown only until the first fitBounds() resolves once station coordinates
-// are known — an approximate India-wide framing, not a fixed default.
+// are known. An approximate India-wide framing, not a fixed default.
 const FALLBACK_VIEW = { longitude: 82.5, latitude: 26, zoom: 4 };
 
 const FIT_BOUNDS_PADDING = { top: 100, bottom: 40, left: 40, right: 40 };
@@ -82,7 +82,7 @@ export function StationMap({
   );
 
   // Frame every known station on load, and re-frame when the station set
-  // itself changes (e.g. river filter) — not on every readings poll.
+  // itself changes (e.g. river filter), but not on every readings poll.
   const bounds = useMemo(() => boundsOf(stations), [stations]);
 
   useEffect(() => {
@@ -140,7 +140,7 @@ export function StationMap({
             }}
           >
             <button
-              aria-label={`${s.name} — ${meta.label}`}
+              aria-label={`${s.name}, ${meta.label}`}
               className="grid h-10 w-10 place-items-center cursor-pointer"
             >
               <span
@@ -189,7 +189,7 @@ const PARAM_INFO: { label: string; why: string }[] = [
   },
   {
     label: "pH",
-    why: "How acidic or alkaline the water is. Safe range is roughly 6.5-8.5 — outside it, aquatic life is harmed and it often signals industrial or sewage discharge.",
+    why: "How acidic or alkaline the water is. Safe range is roughly 6.5-8.5. Outside it, aquatic life is harmed and it often signals industrial or sewage discharge.",
   },
   {
     label: "Dissolved Oxygen (DO)",
@@ -213,7 +213,7 @@ type Usability = { label: string; tone: string };
 
 // CPCB's "Primary Water Quality Criteria" for designated best-use classes A
 // (drinking, after disinfection only) and B (outdoor bathing) also require
-// total coliform, which isn't in this dataset — so this is an approximation
+// total coliform, which isn't in this dataset, so this is an approximation
 // from pH/DO/BOD alone, not an official CPCB classification.
 function usabilityOf(latest: Reading | null): Usability | null {
   if (!latest) return null;
@@ -325,19 +325,19 @@ function StationPopup({
         <dl className="mt-2.5 grid grid-cols-2 gap-x-3 gap-y-1.5 text-xs">
           <div>
             <dt className="text-slate-400">pH</dt>
-            <dd className="font-medium text-slate-800">{latest.ph ?? "—"}</dd>
+            <dd className="font-medium text-slate-800">{latest.ph ?? "N/A"}</dd>
           </div>
           <div>
             <dt className="text-slate-400">DO (mg/L)</dt>
-            <dd className="font-medium text-slate-800">{latest.dissolved_oxygen_mg_l ?? "—"}</dd>
+            <dd className="font-medium text-slate-800">{latest.dissolved_oxygen_mg_l ?? "N/A"}</dd>
           </div>
           <div>
             <dt className="text-slate-400">BOD (mg/L)</dt>
-            <dd className="font-medium text-slate-800">{latest.bod_mg_l ?? "—"}</dd>
+            <dd className="font-medium text-slate-800">{latest.bod_mg_l ?? "N/A"}</dd>
           </div>
           <div>
             <dt className="text-slate-400">Turbidity</dt>
-            <dd className="font-medium text-slate-800">{latest.turbidity_ntu ?? "—"}</dd>
+            <dd className="font-medium text-slate-800">{latest.turbidity_ntu ?? "N/A"}</dd>
           </div>
         </dl>
       ) : (

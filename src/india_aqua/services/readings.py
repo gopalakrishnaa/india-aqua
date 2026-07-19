@@ -98,7 +98,7 @@ def get_deficiency_report(db: Session) -> list[dict]:
         if not reading:
             issues.append("No readings on record")
         elif reading.recorded_at.replace(tzinfo=None) < cutoff:
-            issues.append(f"Stale data — last reading {reading.recorded_at.date()}")
+            issues.append(f"Stale data: last reading {reading.recorded_at.date()}")
         elif reading:
             for metric in EXPECTED_METRICS:
                 if getattr(reading, metric) is None:

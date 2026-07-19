@@ -1,4 +1,4 @@
-"""Vercel serverless entrypoint — exposes the FastAPI app as ASGI.
+"""Vercel serverless entrypoint. Exposes the FastAPI app as ASGI.
 
 Vercel's Python runtime installs requirements.txt (slim, no Playwright)
 and bundles the repo; src/ isn't pip-installed, so put it on sys.path.

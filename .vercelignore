@@ -1,4 +1,4 @@
-# Backend serverless bundle — keep it lean (api/, src/, requirements.txt).
+# Backend serverless bundle. Keep it lean (api/, src/, requirements.txt).
 .venv
 .git
 .github

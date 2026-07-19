@@ -1,12 +1,12 @@
 """CPCB 'Polluted River Stretches' report importer.
 
 Unlike the other scrapers in this package, this one doesn't hit a live
-telemetry endpoint — CPCB publishes this assessment as a PDF every couple of
+telemetry endpoint. CPCB publishes this assessment as a PDF every couple of
 years (2018, 2022, ...), covering every state/UT's monitored river stretches
 with a real BOD reading and priority class. We download it, extract the
 per-state tables, geocode each stretch, and synthesize the metrics CPCB
 doesn't report (pH/DO/COD/turbidity/temperature) from the real BOD using a
-plausible pollution-correlated model — clearly labelled as such in raw_text.
+plausible pollution-correlated model, clearly labelled as such in raw_text.
 
 Given how infrequently the source updates, this is meant to be run by hand
 (`india-aqua import-cpcb-report`) when a new edition drops, not on a tight
@@ -37,7 +37,7 @@ RECORDED_AT = datetime(2022, 11, 1, tzinfo=UTC)
 
 GEOCODE_CACHE_PATH = Path(__file__).resolve().parents[3] / "data" / "cpcb_geocode_cache.json"
 
-# India's rough bounding box — coordinates outside this are almost certainly a
+# India's rough bounding box. Coordinates outside this are almost certainly a
 # bad geocode (wrong country matched) and get dropped rather than inserted.
 INDIA_BBOX = {"lat_min": 6.0, "lat_max": 38.0, "lon_min": 68.0, "lon_max": 98.0}
 
@@ -81,7 +81,7 @@ _PLACE_PREFIX_RE = re.compile(r"^(ALONG|NEAR|UPSTREAM OF|DOWNSTREAM OF|D/S OF|U/
 
 def fetch_pdf_text(url: str = REPORT_URL, *, timeout: float = 60.0) -> str:
     # nmcg.nic.in's TLS chain verifies fine against the OS trust store (curl,
-    # browsers) but not against certifi's bundled CA list — NIC-issued certs
+    # browsers) but not against certifi's bundled CA list. NIC-issued certs
     # for .nic.in domains commonly chain through an Indian government root
     # that isn't in the public Mozilla bundle Python ships. This is a
     # known-source, read-only fetch of a public PDF (no secrets in play), so
@@ -97,7 +97,7 @@ def fetch_pdf_text(url: str = REPORT_URL, *, timeout: float = 60.0) -> str:
     resp.raise_for_status()
     body = resp.content
     # NMCG's mirror sometimes wraps the PDF in a stray HTML fragment before
-    # the real %PDF header — strip anything before it.
+    # the real %PDF header. Strip anything before it.
     idx = body.find(b"%PDF")
     if idx > 0:
         body = body[idx:]
@@ -132,13 +132,13 @@ def parse_rows(text: str) -> list[dict]:
         location = parts[1].strip() if len(parts) > 1 else ""
         if not location and river:
             # River cell wrapped across a line break with no location text
-            # captured, or the "river" we grabbed is actually location prose
-            # — best effort: keep the whole head as the location and flag it.
+            # captured, or the "river" we grabbed is actually location prose.
+            # Best effort: keep the whole head as the location and flag it.
             location = head
             swapped_warnings.append(f"{current_state}: {head!r}")
         if not river or not location:
             # Coincidental "<number> <roman numeral>" match inside ordinary
-            # prose (not a real table row) — nothing usable to recover.
+            # prose (not a real table row). Nothing usable to recover.
             buffer = None
             return
         rows.append({
@@ -164,7 +164,7 @@ def parse_rows(text: str) -> list[dict]:
         upper = line.upper()
         if upper.startswith("ANNEXURE"):
             # Per-state tables are done; Annexure IV-VIII re-list the same
-            # rows grouped by priority class instead of by state — same row
+            # rows grouped by priority class instead of by state. Same row
             # shape, would otherwise get misattributed to the last state seen.
             flush()
             current_state = None
@@ -277,7 +277,7 @@ def resolve_coordinates(row: dict, cache: GeocodeCache, client: httpx.Client) ->
 
 def derive_synthetic_metrics(bod: float, seed: int) -> dict:
     """CPCB reports only BOD. The rest is a plausible pollution-correlated
-    placeholder, not a real reading — always cited as such in raw_text."""
+    placeholder, not a real reading. Always cited as such in raw_text."""
     rng = random.Random(seed)
     do = max(0.5, min(9.0, 9.0 - bod * 0.22 + rng.uniform(-0.6, 0.6)))
     turbidity = max(3.0, min(300.0, 8.0 + bod * 2.6 + rng.uniform(-8, 8)))
@@ -304,7 +304,7 @@ def is_sane(row: dict, lat: float, lon: float) -> bool:
 class CPCBReportScraper(BaseScraper):
     """One-shot importer for the CPCB Polluted River Stretches report.
 
-    Not part of the periodic demo/live scrape rotation — run explicitly via
+    Not part of the periodic demo/live scrape rotation. Run explicitly via
     `india-aqua import-cpcb-report` when a new report edition is published.
     """
 

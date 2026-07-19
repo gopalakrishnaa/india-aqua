@@ -1,7 +1,7 @@
 """Import pipeline for the CPCB Polluted River Stretches report.
 
 Deliberately skips the LLM hallucination validator used by the live scrape
-pipeline (services/scrape_pipeline.py) — that agent's job is to catch an LLM
+pipeline (services/scrape_pipeline.py). That agent's job is to catch an LLM
 fabricating numbers from messy scraped page text. Here the numbers come from
 a deterministic table parse of an official PDF, so there's nothing for it to
 validate; the sanity gate in scrapers/cpcb_report.py (BOD range, priority
